@@ -51,31 +51,52 @@ string Tool = "Team Development for Sitecore - GlassItem.tt";
 string ToolVersion = "1.0";
 #>
 
+<# string templateShortDescription = template.SitecoreFields.GetValue("__Short description"); #>
+<# string templateLongDescription = template.SitecoreFields.GetValue("__Long description"); #>
+
 namespace <#= GetNamespace(DefaultNamespace, template)#>
 {
 
 
- 	/// <summary>
+	/// <summary>
 	/// <#= template.Name.AsInterfaceName() #> Interface
-	/// <para><#= template.SitecoreFields.GetValue("__Short description")#></para>
-	/// <para>Path: <#= template.Path #></para>	
-	/// <para>ID: <#= template.ID.ToString() #></para>	
+<# if (!string.IsNullOrEmpty(templateShortDescription)){ 
+#>	/// <para><#= templateShortDescription #></para>
+<# } 
+#><# if (!string.IsNullOrEmpty(templateLongDescription)){ 
+#>	/// <para><#= templateLongDescription #></para>
+<# } 
+#>	/// <para>Path: <#= template.Path #></para>	
+	/// <para>ID: <#= template.ID.ToString().ToUpper() #></para>	
 	/// </summary>
 	[SitecoreType(TemplateId=<#= template.Name.AsInterfaceName() #>Constants.TemplateIdString)]
 	public partial interface <#= template.Name.AsInterfaceName() #> : IGlassBase <#=GetObjectInheritanceDefinition(DefaultNamespace, template, true, (string s) => s.AsInterfaceName())#>
 	{
-			<#foreach(SitecoreField field in GetFieldsForTemplate(template, false)){#>
-					/// <summary>
+<#			foreach(SitecoreField field in GetFieldsForTemplate(template, false)){
+#>					/// <summary>
 					/// The <#=field.Name#> field.
-					/// <para><#= field.SitecoreFields.GetValue("__Short description")#></para>
-					/// <para>Field Type: <#=field.Type#></para>		
+<#				string fieldShortDescription = field.SitecoreFields.GetValue("__Short description");
+					if (!string.IsNullOrEmpty(fieldShortDescription)){ 
+#>					/// <para><#= fieldShortDescription #></para>
+<# } 
+#><#			string fieldLongDescription = field.SitecoreFields.GetValue("__Long description");
+					if (!string.IsNullOrEmpty(fieldLongDescription)){ 
+#>					/// <para><#= fieldLongDescription #></para>
+<#					} 
+#>					/// <para>Field Type: <#=field.Type#></para>		
 					/// <para>Field ID: <#=field.ID.ToString()#></para>
 					/// <para>Custom Data: <#=field.Data#></para>
 					/// </summary>
-					[SitecoreField(<#= template.Name.AsInterfaceName() #>Constants.<#= GetPropertyName(field) #>FieldName)]
-					<#=GetGlassFieldType(field)#> <#= GetPropertyName(field) #>  {get; set;}
+<# string glassFieldName = GetPropertyName(field);
+if (String.Compare(glassFieldName, field.Name) == 0)
+{#>					[SitecoreField] 
+<# }
+else
+{#>					[SitecoreField("<#=field.Name#>")]
+<# } 
+ #>					<#=GetGlassFieldType(field)#> <#= GetPropertyName(field) #>  {get; set;}
 			
-			<#}#>
+<#			}#>
 	}
 
 
@@ -99,27 +120,45 @@ namespace <#= GetNamespace(DefaultNamespace, template)#>
 if (!template.Name.IsInterfaceWord()){ #>	
 	/// <summary>
 	/// <#= template.Name.AsClassName() #>
-	/// <para><#= template.SitecoreFields.GetValue("__Short description")#></para>
-	/// <para>Path: <#= template.Path #></para>	
-	/// <para>ID: <#= template.ID.ToString() #></para>	
+<# if (!string.IsNullOrEmpty(templateShortDescription)){
+#>	/// <para><#= templateShortDescription #></para>
+<# }
+#><# if (!string.IsNullOrEmpty(templateLongDescription)){
+#>	/// <para><#= templateLongDescription #></para>
+<# }
+#>	/// <para>Path: <#= template.Path #></para>
+	/// <para>ID: <#= template.ID.ToString().ToUpper() #></para>	
 	/// </summary>
 	[SitecoreType(TemplateId=<#= template.Name.AsInterfaceName() #>Constants.TemplateIdString)]
 	public partial class <#= template.Name.AsClassName() #>  : GlassBase, <#=template.Name.AsInterfaceName()#> 
 	{
-	   
-		<#foreach(SitecoreField field in GetFieldsForTemplate(template, true)){#>
-				/// <summary>
+<#			foreach(SitecoreField field in GetFieldsForTemplate(template, true)){
+#>				/// <summary>
 				/// The <#=field.Name#> field.
-				/// <para><#= field.SitecoreFields.GetValue("__Short description")#></para>
-				/// <para>Field Type: <#=field.Type#></para>		
+<#				string fieldShortDescription = field.SitecoreFields.GetValue("__Short description");
+				if (!string.IsNullOrEmpty(fieldShortDescription)) {
+#>				/// <para><#= fieldShortDescription #></para>
+<# }
+#><#			string fieldLongDescription = field.SitecoreFields.GetValue("__Long description");
+				if (!string.IsNullOrEmpty(fieldLongDescription)){
+#>				/// <para><#= fieldLongDescription #></para>
+<# }
+#>				/// <para>Field Type: <#=field.Type#></para>		
 				/// <para>Field ID: <#=field.ID.ToString()#></para>
 				/// <para>Custom Data: <#=field.Data#></para>
 				/// </summary>
 				[global::System.CodeDom.Compiler.GeneratedCodeAttribute("<#=Tool#>", "<#=ToolVersion#>")]
-				[SitecoreField(<#= template.Name.AsInterfaceName() #>Constants.<#= GetPropertyName(field) #>FieldName)]
-				public virtual <#=GetGlassFieldType(field)#> <#= GetPropertyName(field) #>  {get; set;}
+<# string glassFieldName = GetPropertyName(field);
+if (String.Compare(glassFieldName, field.Name) == 0)
+{#>				[SitecoreField] 
+<# }
+else
+{#>				[SitecoreField("<#=field.Name#>")]
+<# } #>
+				public virtual <#=GetGlassFieldType(field)#> <#= glassFieldName #>  {get; set;}
+
 					
-		<#}#>	
+<#		}#>	
 	}
 <#}#>
 }
